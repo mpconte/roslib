@@ -16,7 +16,13 @@ import 'request.dart';
 
 /// Status enums.
 enum Status { NONE, CONNECTING, CONNECTED, CLOSED, ERRORED }
-enum TopicStatus { SUBSCRIBED, UNSUBSCRIBED, PUBLISHER, ADVERTISED, UNADVERTISED }
+enum TopicStatus {
+  SUBSCRIBED,
+  UNSUBSCRIBED,
+  PUBLISHER,
+  ADVERTISED,
+  UNADVERTISED
+}
 
 /// The class through which all data to and from a ROS node goes through.
 /// Manages status and key information about the connection and node.
@@ -46,19 +52,19 @@ class Ros {
   int get ids => subscribers + advertisers + publishers + serviceCallers;
 
   /// The websocket connection to communicate with the ROS node.
-  WebSocketChannel _channel;
+  WebSocketChannel? _channel;
 
   /// Subscription to the websocket stream.
-  StreamSubscription _channelListener;
+  StreamSubscription? _channelListener;
 
   /// JSON broadcast websocket stream.
-  Stream stream;
+  Stream? stream;
 
   /// The controller to update subscribers on the state of the connection.
-  StreamController<Status> _statusController;
+  late StreamController<Status> _statusController;
 
   /// Subscribable stream to listen for connection status changes.
-  Stream<Status> get statusStream => _statusController?.stream;
+  Stream<Status> get statusStream => _statusController.stream;
 
   /// Status variable that can be used when not interested in getting live updates.
   Status status = Status.NONE;
@@ -70,12 +76,13 @@ class Ros {
     try {
       // Initialize the connection to the ROS node with a Websocket channel.
       _channel = initializeWebSocketChannel(url);
-      stream = _channel.stream.asBroadcastStream().map((raw) => json.decode(raw));
+      stream =
+          _channel!.stream.asBroadcastStream().map((raw) => json.decode(raw));
       // Update the connection status.
       status = Status.CONNECTED;
       _statusController.add(status);
       // Listen for messages on the connection to update the status.
-      _channelListener = stream.listen((data) {
+      _channelListener = stream!.listen((data) {
         print('INCOMING: $data');
         if (status != Status.CONNECTED) {
           status = Status.CONNECTED;
@@ -90,16 +97,17 @@ class Ros {
       });
     } on WebSocketChannelException catch (e) {
       status = Status.ERRORED;
+      print("ERROR: $e");
       _statusController.add(status);
     }
   }
 
   /// Close the connection to the ROS node, an exit [code] and [reason] can
   /// be optionally specified.
-  Future<void> close([int code, String reason]) async {
+  Future<void> close([int? code, String? reason]) async {
     /// Close listener and websocket.
     await _channelListener?.cancel();
-    await _channel?.sink?.close(code, reason);
+    await _channel?.sink.close(code, reason);
 
     /// Update the connection status.
     _statusController.add(Status.CLOSED);
@@ -113,37 +121,39 @@ class Ros {
     // Format the message into JSON and then stringify.
     final toSend = (message is Request)
         ? json.encode(message.toJson())
-        : (message is Map || message is List) ? json.encode(message) : message;
+        : (message is Map || message is List)
+            ? json.encode(message)
+            : message;
     print('OUTGOING: $toSend');
     // Actually send it to the node.
-    _channel.sink.add(toSend);
+    _channel!.sink.add(toSend);
     return true;
   }
 
   void authenticate({
-    String mac,
-    String client,
-    String dest,
-    String rand,
-    DateTime t,
-    String level,
-    DateTime end,
+    String? mac,
+    String? client,
+    String? dest,
+    String? rand,
+    DateTime? t,
+    String? level,
+    DateTime? end,
   }) async {
     send({
       'mac': mac,
       'client': client,
       'dest': dest,
       'rand': rand,
-      't': t.millisecondsSinceEpoch,
+      't': t!.millisecondsSinceEpoch,
       'level': level,
-      'end': end.millisecondsSinceEpoch,
+      'end': end!.millisecondsSinceEpoch,
     });
   }
 
   /// Sends a set_level request to the server.
   /// [level] can be one of {none, error, warning, info}, and
   /// [id] is the optional operation ID to change status level on
-  void setStatusLevel({String level, int id}) {
+  void setStatusLevel({String? level, int? id}) {
     send({
       'op': 'set_level',
       'level': level,

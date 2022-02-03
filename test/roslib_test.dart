@@ -5,31 +5,31 @@ import 'package:test/test.dart';
 import 'package:roslib/roslib.dart';
 
 void main() {
-  Ros ros;
+  Ros? ros;
 
   setUp(() {
     ros = Ros(url: 'ws://localhost:9090');
-    ros.connect();
+    ros!.connect();
   });
 
   tearDown(() {
-    ros.close();
+    ros!.close();
   });
 
   test('check if a new url is provided upon connection it is used', () async {
     // closes connection created in [setUp] which is retained only to ensure all
     // tests pass regardless of order of execution.
-    await ros.close();
+    await ros!.close();
     ros = Ros(url: 'ws://127.0.0.1:9090');
-    expect(ros.url, 'ws://127.0.0.1:9090');
-    ros.connect(url: 'ws://localhost:9090');
-    expect(ros.url, 'ws://localhost:9090');
+    expect(ros!.url, 'ws://127.0.0.1:9090');
+    ros!.connect(url: 'ws://localhost:9090');
+    expect(ros!.url, 'ws://localhost:9090');
   });
 
   test('checks ROS websocket', () {
-    expect(ros.statusStream, isNotNull);
-    expect(ros.stream, isNotNull);
-    expect(ros.status, Status.CONNECTED);
+    expect(ros!.statusStream, isNotNull);
+    expect(ros!.stream, isNotNull);
+    expect(ros!.status, Status.CONNECTED);
   });
 
   test('subscribe and publish to a topic', () async {
@@ -46,8 +46,8 @@ void main() {
     expect(cmdVel.subscription, isNotNull);
     // ROS is adding a subscriber, hence number of ids += 1
     expect(cmdVel.subscribeId, 'subscribe:/cmd_vel:1');
-    expect(ros.ids, 1);
-    final listener = cmdVel.subscription.listen((data) async {
+    expect(ros!.ids, 1);
+    final listener = cmdVel.subscription!.listen((data) async {
       expect(data['msg'], msg);
       await cmdVel.unsubscribe();
       expect(cmdVel.subscribeId, isNull);
@@ -55,7 +55,7 @@ void main() {
     await cmdVel.publish(msg);
     // ROS is adding an advertiser and publisher, hence number of ids +=2
     expect(cmdVel.publishId, 'publish:/cmd_vel:3');
-    expect(ros.ids, 3);
+    expect(ros!.ids, 3);
     await Future.delayed(Duration(seconds: 1));
     listener.cancel();
   });
