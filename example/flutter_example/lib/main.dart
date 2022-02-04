@@ -16,14 +16,14 @@ class ExampleApp extends StatelessWidget {
 }
 
 class HomePage extends StatefulWidget {
-  HomePage({Key key}) : super(key: key);
+  HomePage({Key? key}) : super(key: key);
 
   _HomePageState createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  Ros ros;
-  Topic chatter;
+  Ros? ros;
+  Topic? chatter;
 
   @override
   void initState() {
@@ -39,14 +39,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   void initConnection() async {
-    ros.connect();
-    await chatter.subscribe();
+    ros!.connect();
+    await chatter!.subscribe();
     setState(() {});
   }
 
   void destroyConnection() async {
-    await chatter.unsubscribe();
-    await ros.close();
+    await chatter!.unsubscribe();
+    await ros!.close();
     setState(() {});
   }
 
@@ -57,7 +57,7 @@ class _HomePageState extends State<HomePage> {
         title: Text('Roslib Example'),
       ),
       body: StreamBuilder<Object>(
-          stream: ros.statusStream,
+          stream: ros!.statusStream,
           builder: (context, snapshot) {
             return Center(
               child: Column(
@@ -65,8 +65,8 @@ class _HomePageState extends State<HomePage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   StreamBuilder(
-                    stream: chatter.subscription,
-                    builder: (context2, snapshot2) {
+                    stream: chatter!.subscription,
+                    builder: (context2, AsyncSnapshot<dynamic> snapshot2) {
                       if (snapshot2.hasData) {
                         return Text('${snapshot2.data['msg']}');
                       } else {
