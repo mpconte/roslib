@@ -1,7 +1,7 @@
 // Copyright (c) 2019 Conrad Heidebrecht.
 
 import 'dart:async';
-import 'package:roslib/core/core.dart';
+import '../core/core.dart';
 
 class ActionClient {
   ActionClient({
